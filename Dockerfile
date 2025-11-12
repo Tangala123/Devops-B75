@@ -1,11 +1,31 @@
-FROM alpine:3.17
-LABEL AUTHOR="Java Home"
-RUN apk add openjdk17-jre
-WORKDIR /opt
-ADD https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.112/bin/apache-tomcat-9.0.112.tar.gz .
-RUN tar xf apache-tomcat-9.0.112.tar.gz
-RUN rm -rf apache-tomcat-9.0.112.tar.gz
-RUN mv apache-tomcat-9.0.112 tomcat9
-COPY target/Devops-B75.war /opt/tomcat9/webapps
+# Stage 1: Build stage
+FROM maven:3.8.4-openjdk-11 AS build
+WORKDIR /app
+
+# Copy the Maven project file
+COPY pom.xml .
+
+# Download and cache Maven dependencies
+RUN mvn dependency:go-offline -B
+
+# Copy the entire project source
+COPY src ./src
+
+# Build the application
+RUN mvn package
+
+# Stage 2: Deployment stage
+FROM tomcat:8.5.76-jdk11-openjdk-slim AS deploy
+
+# Copy the built WAR file from the build stage to Tomcat's webapps directory
+COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/Devops-B75.war
+
+# Optionally, you can set environment variables or perform other configurations here
+# For example:
+# ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+
+# Expose the default Tomcat port
 EXPOSE 8080
-CMD ["/opt/tomcat9/bin/catalina.sh", "run"]
+
+# Start Tomcat
+CMD ["catalina.sh", "run"]
