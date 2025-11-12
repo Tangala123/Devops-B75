@@ -1,5 +1,5 @@
 <html>
 <body>
-<h2 style="color: blue;">Hello, Welcome to Java Home Cloud!</h2>
+<h1 style="color: blue;">Hello, Welcome to Java Home Cloud!</h1>
 </body>
 </html>
